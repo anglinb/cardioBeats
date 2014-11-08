@@ -3,32 +3,73 @@
 <head>
 <title>JogNation</title>
 
-	<link rel="stylesheet" type="text/css" href="assets/demoStyles.css" />
+	<!-- <link rel="stylesheet" type="text/css" href="assets/demoStyles.css" /> -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+    <style>
+        /* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+
+      background: url(assets/img/bg3.jpg) no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
+  background-color: #f5f5f5;
+}
+    </style>
 </head>
 
 <body onload="init()">
 
-	<header id="header" class="SoundJS">
+    <!-- <h2 style="">BPM: <span id="bpm-status"></span></h2> -->
+	<!-- <header id="header" class="SoundJS">
 	    <h1><span class="text-product">Jog<strong>Nation</strong></span></h1>
 	    <p>Connect your Myo and JobNation will play songs with a bpm that match your pace.</p>
-	</header>
+
+	</header> -->
+
 
 	<div class="content" id="content">
 		<h1 id="status">Startup.</h1>
+            <div id="track" style="display: block; width: 500px; height: 5px; background: red;">
+                <div id="progress"></div>
+                <div id="thumb" style="background: green; width: 5px; height: 5px;"></div>
+            </div>
 	</div>
 	
-	<div id="error">
+	<div id="error" style="display: none;">
 		<h1>Sorry!</h1>
 		<p>SoundJS is not currently supported in your browser.</p>
 		<p>Please <a href="http://github.com/CreateJS/SoundJS/issues" target="_blank">log a bug</a>
 			with the device and browser you are using.  Thank you.</p>
 	</div>
 
-    <div id="mobile">
+    <div id="mobile" style="display:none;">
         <h1>Sorry!</h1>
         <p>Mobile devices require sound to be played inside of user events, which this demo does not do.</p>
         <p>Please <a href="http://github.com/CreateJS/SoundJS/issues" target="_blank">log a bug</a>
             with the OS and browser if you see this on a device that is not mobile.  Thank you.</p>
+    </div>
+    
+        
+    <div class="footer" style="background-color: #222;">
+      <div class="container">
+        <p style="color: #fff; text-align: center;">Made with <span class="glyphicon glyphicon-heart"></span> by <a href="https://twitter.com/TheBrianAnglin">@theBrianAnglin</a> &amp; <a href="https://twitter.com/micoabrina">@micoabrina</a> <img style="height: 100%;" src="assets/img/footer-logo2.png" alt="Hack SC"></p>
+      </div>
     </div>
 
 	<!-- Note: All SoundJS classes are listed here: -->
@@ -39,6 +80,8 @@
     <script type="text/javascript" src="../src/soundjs/Sound.js"></script>
     <script type="text/javascript" src="../src/soundjs/WebAudioPlugin.js"></script>
     <script type="text/javascript" src="../src/soundjs/HTMLAudioPlugin.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
 
 	<!-- We also provide hosted minified versions of all CreateJS libraries.
      http://code.createjs.com -->
@@ -47,6 +90,13 @@
         var src;            // the audio src we are trying to play
         var soundInstance;  // the soundInstance returned by Sound when we create or play a src
         var displayStatus;  // the HTML element we use to display messages to the user
+        var socket = io();
+        var songMeta = {};
+        var lastTime;
+        var lastBPMS = [];
+        var positionInterval;
+        // var timeDelta;
+
 
         function init() {
             if (window.top != window) {
@@ -69,6 +119,7 @@
 
             // store the DOM element so we do not have to keep looking it up
             displayStatus = document.getElementById("status");
+            BPMStatus = document.getElementById("bpm-status");
         }
         function loadSoundAndPlay(url){
             // Create a single item to load.
@@ -91,8 +142,64 @@
 			soundInstance = createjs.Sound.play(event.src);  // start playing the sound we just loaded, storing the playing instance
 			displayStatus.innerHTML = "Playing source: " + event.src;  // let the user know what we are playing
         }
-
+        function updateBPM(bpm){
+            BPMStatus.innerHTML = String(bpm);
+        }
+        function trackTime() {
+            positionInterval = setInterval(function(event) {
+                if( soundInstance ){
+                    $("#thumb").css("left", soundInstance.getPosition()/soundInstance.getDuration() * $("#track").width());
+                }
+            }, 30);
+        }
+        socket.on('bpm update', function(data){
+            updateBPM(data.bpm);
+        });
+        socket.on('play song', function(data){
+            songMeta.bpm = data.bpm;
+            songMeta.name = data.name;
+            songMeta.source = data.source;
+            songMeta.cover = data.cover;
+            loadSoundAndPlay(data.source);
+            updateSongMeta();
+        });
+        $('body').keyup(function(e){
+           if(e.keyCode == 32){
+            console.log('Space Pressed');
+            if( ! lastTime ){
+                lastTime = new Date().getTime();
+            }else{
+                var bpm;
+                var currentTime = new Date().getTime();
+                timeDelata = currentTime - lastTime;
+                lastTime = currentTime;
+                bpm = 60000*(1/timeDelata);
+                lastBPMS.push(bpm);
+                // console.log(bpm);
+                if( lastBPMS.length >= 5){
+                    lastBPMS.shift();
+                }
+                total = 0;
+                for (var i = 0; i < lastBPMS.length; i++) {
+                    total += lastBPMS[i];
+                };
+                average = total / lastBPMS.length;
+                rounded = x_rounded = 5 * Math.round(average/5);
+                console.log(average);
+                console.log(rounded);
+            }
+           }
+        });
     </script>
 
+
+<!-- bpm = beats / 60 seconds = beats / 60000 milieconds 
+
+468 miliseconds / beat
+
+beat / 468 miliseconds 
+
+
+x/60000 = 1/468 -->
 </body>
 </html>
