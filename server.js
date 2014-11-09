@@ -62,7 +62,7 @@ app.post('/update', function(req, res){
       total += lastInputs[i];
     }
     var avg = total / 10;
-    if( avg < 5 ){
+    if( avg < 5 ){  
       multiplier = 1.2;
     }else if( avg > 5 && avg < 8 ){
       multiplier = 1;
@@ -82,7 +82,8 @@ app.post('/update', function(req, res){
   //   distance = bps - interval*2**i;
   //   if( distance < closestBPM - interval*2**i)
   // };
-  res.end(String(targetBPM)+'----'+String(targetBPMMultiplier)+"\n");
+  res.end('ok');
+  // res.end(String(targetBPM)+'----'+String(targetBPMMultiplier)+"\n");
 });
 var songs = [
   {
