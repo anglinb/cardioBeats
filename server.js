@@ -4,6 +4,7 @@ var app = express();
 var server = require('http').createServer(app);
 var bodyParser = require('body-parser');
 var io = require('socket.io')(server);
+var request = require('request');
 var port = process.env.PORT || 3000;
 var currentSongIndex;
 
@@ -108,8 +109,34 @@ var songs = [
 ];
 
 function findSong(){
-  currentSongIndex = Math.floor(Math.random()*songs.length);
+  setSongIndex( Math.floor(Math.random()*songs.length) );
   return songs[currentSongIndex];
+}
+function setSongIndex(index){
+  currentSongIndex = index;
+    var url = "https://partner.api.beatsmusic.com/v1/api/search?q="+encodeURIComponent(songs[index].artist)+"&type=artist&limit=1&offset=0&client_id=gkwcd8n62rvz5an6tvsxmf5x";
+    request({
+        url: url,
+        json: true
+    }, function (error, response, body) {
+
+        if (!error && response.statusCode === 200) {
+            var artistId = body.data[0].id;
+            var url = "https://partner.api.beatsmusic.com/v1/api/artists/"+artistId+"/bios?limit=1&offset=0&client_id=gkwcd8n62rvz5an6tvsxmf5x";
+            request({
+                url: url,
+                json: true
+            }, function (error, response, new_body) {
+
+                if (!error && response.statusCode === 200) {
+                    var bio = new_body.data[0].content.substring(0,365);
+                    io.sockets.emit('artist bio',{bio:bio});
+                    // var artistId = body.data[0].id;
+                    // console.log(body); // Print the json response
+                }
+            });
+        }
+    });
 }
 function sendNewSong(song){
   io.sockets.emit('playsong', song);
@@ -123,7 +150,7 @@ io.on('connection', function (socket) {
     sendNewSong(findSong());
   });
   socket.on('song currently playing',function(data){
-    currentSongIndex = parseInt(data.id)-1;
+    setSongIndex( parseInt(data.id)-1 );
   });
 
 });

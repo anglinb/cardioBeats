@@ -122,6 +122,7 @@
           var loader = this;
 
           request.onload = function() {
+            console.log(request);
             // Asynchronously decode the audio file data in request.response
             loader.context.decodeAudioData(
               request.response,
@@ -163,13 +164,11 @@
         var context;
         var bufferLoader;
         var source1;
+        var firstTime = true;
 
         function init() {
           // Fix up prefixing
-          window.AudioContext = window.AudioContext || window.webkitAudioContext;
-          context = new AudioContext();
 
-          trackTime();
         }
         function finishedLoading(bufferList) {
           // Create two sources and play them both together.
@@ -186,7 +185,14 @@
           updateSongMeta();
         }
         function loadSoundAndPlay(url){
-
+            if( firstTime ){
+                  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                context = new AudioContext();
+                console.log(context);
+                trackTime();
+                firstTime = false;   
+            } 
+            console.log(context);
             bufferLoader = new BufferLoader(
             context,[url],
             finishedLoading
@@ -232,10 +238,16 @@
         }); 
         socket.on('playsong connect', function(data){
             console.log('Playsong Connect');
+            console.log(data);
+            console.log(data.source);
             if( ! source1 ){
                 songMeta = data;
                 loadSoundAndPlay(data.source);
             }
+        });
+        socket.on('update multiplier', function(data){
+            console.log('updated multiplier');
+            source1.playbackRate.value = data.multiplier;
         });
         socket.on('playsong', function(data){
             console.log('got play song');
