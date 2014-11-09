@@ -7,6 +7,8 @@ var io = require('socket.io')(server);
 var request = require('request');
 var port = process.env.PORT || 3000;
 var currentSongIndex;
+var lastInputs = [];
+
 
 server.listen(port, function () {
   console.log('Server listening at port %d', port);
@@ -18,39 +20,61 @@ app.use(express.static(__dirname + '/public'));
 //Parsing request body
 app.use(bodyParser.urlencoded({ extended: false }));
 
+
 app.post('/update', function(req, res){
-  var song = songs[currentSongIndex];
-  console.log('Current song: '+song.name);
-  console.log('Song bpm: '+song.bpm);
-  var interval = parseFloat(req.body.interval);
-  var multiplier;
-  songInterval = 1/(song.bpm/60);
-  console.log(songInterval);
-  prevDistance = 99999999;
-  var prevTargetInterval;
-  for (var i = 0; i < 6; i++) {
-    multiplier = Math.pow(2, i);
-    console.log(multiplier);
-    targetInterval = multiplier * interval;
-    console.log(targetInterval);
-    distance = Math.abs(songInterval - targetInterval);
-    if( distance < prevDistance){
-      prevDistance = distance;
-      prevTargetInterval = targetInterval;
-    }else{
-      break;
+  // var song = songs[currentSongIndex];
+  // console.log('Current song: '+song.name);
+  // console.log('Song bpm: '+song.bpm);
+  // var interval = parseFloat(req.body.interval);
+  // var multiplier;
+  // songInterval = 1/(song.bpm/60);
+  // console.log(songInterval);
+  // prevDistance = 99999999;
+  // var prevTargetInterval;
+  // for (var i = 0; i < 6; i++) {
+  //   multiplier = Math.pow(2, i);
+  //   console.log(multiplier);
+  //   targetInterval = multiplier * interval;
+  //   console.log(targetInterval);
+  //   distance = Math.abs(songInterval - targetInterval);
+  //   if( distance < prevDistance){
+  //     prevDistance = distance;
+  //     prevTargetInterval = targetInterval;
+  //   }else{
+  //     break;
+  //   }
+  // }
+  // targetBPM = 60.0 * (1 / prevTargetInterval);
+  // targetBPMMultiplier = targetBPM/song.bpm;
+  // console.log('Target BPM '+targetBPM);
+  // console.log('Target BPM Multiplier'+String(targetBPMMultiplier));
+  // if( targetBPMMultiplier > 1.4){
+  //   targetBPMMultiplier = 1.4;
+  // }else if( targetBPMMultiplier < 0.75 ){
+  //   targetBPMMultiplier = 0.75;
+  // }
+  lastInputs.push( req.body.interval );
+  if( lastInputs.length > 11){
+    lastInputs.shitf();
+    // lastInputs.push( req.body.interval );
+      total = 0;
+    for (var i = 0; i < lastInputs.length; i++) {
+      total += lastInputs[i];
     }
+    var avg = total / 10;
+    if( avg < 5 ){
+      multiplier = 1.2;
+    }else if( avg > 5 && avg < 8 ){
+      multiplier = 1;
+    }else if(avg > 8){
+      multiplier = 0.7;
+    }
+    io.sockets.emit('update multiplier',{'multiplier':multiplier,'raw_multiplier':avg});
   }
-  targetBPM = 60.0 * (1 / prevTargetInterval);
-  targetBPMMultiplier = targetBPM/song.bpm;
-  console.log('Target BPM '+targetBPM);
-  console.log('Target BPM Multiplier'+String(targetBPMMultiplier));
-  if( targetBPMMultiplier > 1.4){
-    targetBPMMultiplier = 1.4;
-  }else if( targetBPMMultiplier < 0.75 ){
-    targetBPMMultiplier = 0.75;
-  }
-  io.sockets.emit('update multiplier',{'multiplier':targetBPMMultiplier,'raw_multiplier':targetBPM});
+
+  // if( req.interval )
+  
+  // io.sockets.emit('update multiplier',{'multiplier':targetBPMMultiplier,'raw_multiplier':targetBPM});
   // closestBPM = 9999999;
   // for (var i = 0; i < 6; i++) {
   //   distance = bps - interval*2**i;
@@ -109,7 +133,7 @@ var songs = [
 ];
 
 function findSong(){
-  setSongIndex( Math.floor(Math.random()*songs.length) );
+  setSongIndex( 2 );//Math.floor(Math.random()*songs.length) );
   return songs[currentSongIndex];
 }
 function setSongIndex(index){
