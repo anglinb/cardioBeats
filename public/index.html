@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>JogNation</title>
+<title>cardioNation</title>
 
 	<!-- <link rel="stylesheet" type="text/css" href="assets/demoStyles.css" /> -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
@@ -34,37 +34,70 @@ body {
 </head>
 
 <body onload="init()">
-
-    <!-- <h2 style="">BPM: <span id="bpm-status"></span></h2> -->
-	<!-- <header id="header" class="SoundJS">
-	    <h1><span class="text-product">Jog<strong>Nation</strong></span></h1>
-	    <p>Connect your Myo and JobNation will play songs with a bpm that match your pace.</p>
-
-	</header> -->
-
-
-	<div class="content" id="content">
-		<h1 id="status">Startup.</h1>
-            <div id="track" style="display: block; width: 500px; height: 5px; background: red;">
-                <div id="progress"></div>
-                <div id="thumb" style="background: green; width: 5px; height: 5px;"></div>
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="container">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">cardio<strong>Nation</strong></a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li class="active"><a onclick="return false;">BPM <span id="bpm"></span></a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="http://github.com/">View Source</a></li>
+            </ul>
             </div>
-	</div>
-	
-	<div id="error" style="display: none;">
-		<h1>Sorry!</h1>
-		<p>SoundJS is not currently supported in your browser.</p>
-		<p>Please <a href="http://github.com/CreateJS/SoundJS/issues" target="_blank">log a bug</a>
-			with the device and browser you are using.  Thank you.</p>
-	</div>
+          </div><!--/.nav-collapse -->
+      </nav>
 
-    <div id="mobile" style="display:none;">
-        <h1>Sorry!</h1>
-        <p>Mobile devices require sound to be played inside of user events, which this demo does not do.</p>
-        <p>Please <a href="http://github.com/CreateJS/SoundJS/issues" target="_blank">log a bug</a>
-            with the OS and browser if you see this on a device that is not mobile.  Thank you.</p>
-    </div>
+    <div class="container">
+        <div id="error" style="display: none;">
+            <h1>Sorry!</h1>
+            <p>SoundJS is not currently supported in your browser.</p>
+            <p>Please <a href="http://github.com/CreateJS/SoundJS/issues" target="_blank">log a bug</a>
+                with the device and browser you are using.  Thank you.</p>
+        </div>
+
+        <div id="mobile" style="display:none;">
+            <h1>Sorry!</h1>
+            <p>Mobile devices require sound to be played inside of user events, which this demo does not do.</p>
+            <p>Please <a href="http://github.com/CreateJS/SoundJS/issues" target="_blank">log a bug</a>
+                with the OS and browser if you see this on a device that is not mobile.  Thank you.</p>
+        </div>
+    <div class="panel" style="background: rgba(255,255,255,.7);">
+        
+        <div class="panel-body">
+        	<div class="content" id="content">
+        		
+                <div class="row">
+                    <div class="col-md-6">
+                        <h1 id="status">Waiting for Myo</h1>
+                        <img src="" alt="Cover" id="cover" style="display: none; width: 100%;">
+                        <div id="track" style="display: block; position: relative; width: 100%; height: 5px; background: #990000;">
+                            <div id="progress"></div>
+                            <div id="thumb" style="position: absolute; background: #ffcc00; width: 5px; height: 5px;"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Artist Info:</h4>
+                        <p id="artist-bio">Artist bio... <br>Similar artists...</p>
+                    </div>
+                </div>
+
+        	</div>
+      </div>
+      </div>
+	
+
+
     
+    </div><!-- /.cotainer -->
         
     <div class="footer" style="background-color: #222;">
       <div class="container">
@@ -85,8 +118,9 @@ body {
 
 	<!-- We also provide hosted minified versions of all CreateJS libraries.
      http://code.createjs.com -->
-	
+	<script src="new-way.js"></script>
     <script>
+
         var src;            // the audio src we are trying to play
         var soundInstance;  // the soundInstance returned by Sound when we create or play a src
         var displayStatus;  // the HTML element we use to display messages to the user
@@ -120,6 +154,7 @@ body {
             // store the DOM element so we do not have to keep looking it up
             displayStatus = document.getElementById("status");
             BPMStatus = document.getElementById("bpm-status");
+            trackTime();
         }
         function loadSoundAndPlay(url){
             // Create a single item to load.
@@ -131,16 +166,24 @@ body {
             createjs.Sound.alternateExtensions = ["mp3"];   // add other extensions to try loading if the src file extension is not supported
             //createjs.Sound.onLoadComplete = playSound;  // add a callback for when load is completed
             createjs.Sound.addEventListener("fileload", playSound); // add an event listener for when load is completed
+            
             createjs.Sound.registerSound(src);  // register sound, which preloads by default
 
-            displayStatus.innerHTML = "Waiting for load to complete.";  // letting the user know what's happening
+            displayStatus.innerHTML = "Loading...";  // letting the user know what's happening
         }
         function playSound(event) {
             if( soundInstance ){
                 soundInstance.stop();
             }
 			soundInstance = createjs.Sound.play(event.src);  // start playing the sound we just loaded, storing the playing instance
-			displayStatus.innerHTML = "Playing source: " + event.src;  // let the user know what we are playing
+            soundInstance.addEventListener("complete",songComplete);
+
+            updateSongMeta();
+			// displayStatus.innerHTML = "Playing: " + songMeta.name;  // let the user know what we are playing
+        }
+        function songComplete(event){
+            console.log('songComplete');
+            socket.emit('song complete');
         }
         function updateBPM(bpm){
             BPMStatus.innerHTML = String(bpm);
@@ -152,17 +195,44 @@ body {
                 }
             }, 30);
         }
+        function updateSongMeta(){
+            $("#bpm").html(songMeta.bpm);
+            $("#status").html(songMeta.name + ' - ' + songMeta.artist);
+            $("#cover").show();
+            $("#cover").attr('src', songMeta.cover);
+        }
+        function commandUpate(){
+            socket.emit('command input');
+        }
+        // function loadArtistBio(){
+        //     $.ajax({
+        //         url:'https://partner.api.beatsmusic.com/v1/api/search?q=Drake&type=artist&limit=20&offset=0&client_id=gkwcd8n62rvz5an6tvsxmf5x'
+        //     })
+        // }
+          // socket.on('playsong', function (data) {
+          //   addChatMessage(data);
+          // });
         socket.on('bpm update', function(data){
             updateBPM(data.bpm);
         });
-        socket.on('play song', function(data){
-            songMeta.bpm = data.bpm;
-            songMeta.name = data.name;
-            songMeta.source = data.source;
-            songMeta.cover = data.cover;
-            loadSoundAndPlay(data.source);
-            updateSongMeta();
+        socket.on('artist bio', function(data){
+            $("#artist-bio").html(data.bio);
+        }); 
+        socket.on('playsong2', function(data){
+            console.log(data);
         });
+        socket.on('playsong', function(data){
+            console.log('got play song');
+            songMeta = data;
+            // songMeta.bpm = data.bpm;
+            // songMeta.name = data.name;
+            // songMeta.source = data.source;
+            // songMeta.cover = data.cover;
+            // songMeta.cover = data.cover;
+            loadSoundAndPlay(data.source);
+            
+        });
+
         $('body').keyup(function(e){
            if(e.keyCode == 32){
             console.log('Space Pressed');
