@@ -57,19 +57,6 @@ body {
       </nav>
 
     <div class="container">
-        <div id="error" style="display: none;">
-            <h1>Sorry!</h1>
-            <p>SoundJS is not currently supported in your browser.</p>
-            <p>Please <a href="http://github.com/CreateJS/SoundJS/issues" target="_blank">log a bug</a>
-                with the device and browser you are using.  Thank you.</p>
-        </div>
-
-        <div id="mobile" style="display:none;">
-            <h1>Sorry!</h1>
-            <p>Mobile devices require sound to be played inside of user events, which this demo does not do.</p>
-            <p>Please <a href="http://github.com/CreateJS/SoundJS/issues" target="_blank">log a bug</a>
-                with the OS and browser if you see this on a device that is not mobile.  Thank you.</p>
-        </div>
     <div class="panel" style="background: rgba(255,255,255,.7);">
         
         <div class="panel-body">
@@ -118,12 +105,13 @@ body {
 
 	<!-- We also provide hosted minified versions of all CreateJS libraries.
      http://code.createjs.com -->
+    <script scr="custom-framework.js"></script>
 	<script src="new-way.js"></script>
     <script>
 
         var src;            // the audio src we are trying to play
-        var soundInstance;  // the soundInstance returned by Sound when we create or play a src
-        var displayStatus;  // the HTML element we use to display messages to the user
+        // var soundInstance;  // the soundInstance returned by Sound when we create or play a src
+        // var displayStatus;  // the HTML element we use to display messages to the user
         var socket = io();
         var songMeta = {};
         var lastTime;
@@ -133,41 +121,27 @@ body {
 
 
         function init() {
-            if (window.top != window) {
-                document.getElementById("header").style.display = "none";
-            }
 
-            // this does two things, it initializes the default plugins, and if that fails the if statement triggers and we display an error
-            if (!createjs.Sound.initializeDefaultPlugins()) {
-                document.getElementById("error").style.display = "block";
-                document.getElementById("content").style.display = "none";
-                return;
-            }
-
-            // check if we are on a mobile device, as these currently require us to launch sound inside of a user event
-            if (createjs.Sound.BrowserDetect.isIOS || createjs.Sound.BrowserDetect.isAndroid) {  // || createjs.Sound.BrowserDetect.isBlackberry  // OJR blackberry has not been tested yet
-                document.getElementById("mobile").style.display = "block";
-                document.getElementById("content").style.display = "none";
-                return;
-            }
 
             // store the DOM element so we do not have to keep looking it up
             displayStatus = document.getElementById("status");
-            BPMStatus = document.getElementById("bpm-status");
+    
             trackTime();
         }
         function loadSoundAndPlay(url){
+
+
             // Create a single item to load.
             // var assetsPath = "assets/";
-            // src = assetsPath+"18-machinae_supremacy-lord_krutors_dominion.ogg";
-            src = url;
-            // NOTE the "|" character is used by Sound to separate source into distinct files, which allows you to provide multiple extensions for wider browser support
+            // // src = assetsPath+"18-machinae_supremacy-lord_krutors_dominion.ogg";
+            // src = url;
+            // // NOTE the "|" character is used by Sound to separate source into distinct files, which allows you to provide multiple extensions for wider browser support
 
-            createjs.Sound.alternateExtensions = ["mp3"];   // add other extensions to try loading if the src file extension is not supported
-            //createjs.Sound.onLoadComplete = playSound;  // add a callback for when load is completed
-            createjs.Sound.addEventListener("fileload", playSound); // add an event listener for when load is completed
+            // createjs.Sound.alternateExtensions = ["mp3"];   // add other extensions to try loading if the src file extension is not supported
+            // //createjs.Sound.onLoadComplete = playSound;  // add a callback for when load is completed
+            // createjs.Sound.addEventListener("fileload", playSound); // add an event listener for when load is completed
             
-            createjs.Sound.registerSound(src);  // register sound, which preloads by default
+            // createjs.Sound.registerSound(src);  // register sound, which preloads by default
 
             displayStatus.innerHTML = "Loading...";  // letting the user know what's happening
         }
