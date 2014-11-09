@@ -53,23 +53,31 @@ app.post('/update', function(req, res){
   // }else if( targetBPMMultiplier < 0.75 ){
   //   targetBPMMultiplier = 0.75;
   // }
-  lastInputs.push( req.body.interval );
-  if( lastInputs.length > 11){
+  lastInputs.push( parseFloat(req.body.interval) );
+  if( lastInputs.length > 10){
     total = 0;
-    for (var i = 0; i < lastInputs.length; i++) {
-      total += lastInputs[i];
+    for (var i = 0; i < lastInputs.length - 1; i++) {
+      console.log('Called i: '+String(i));
+      total = total + lastInputs[i];
     }
+    console.log(total);
     var avg = total / 10;
     if( avg < 5 ){
       multiplier = 1.2;
-    }else if( avg > 5 && avg < 8 ){
+    }else if( avg >= 5 && avg < 8 ){
       multiplier = 1;
     }else if(avg > 8){
       multiplier = 0.7;
+    }else{
+      multiplier = -1;
     }
-    io.sockets.emit('update multiplier',{'multiplier':multiplier,'raw_multiplier':'swag'});
-    lastInputs.unshift();
+    console.log(avg);
+    console.log(multiplier);
+    io.sockets.emit('update multiplier',{'multiplier':multiplier,'raw_multiplier':avg});
+    lastInputs.shift();
   }
+  console.log(lastInputs);
+  console.log('update getting called');
   // io.sockets.emit('update multiplier',{'multiplier':1 ,'raw_multiplier':'kfdsf'});
 
 
