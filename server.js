@@ -50,7 +50,7 @@ app.post('/update', function(req, res){
   }else if( targetBPMMultiplier < 0.75 ){
     targetBPMMultiplier = 0.75;
   }
-  io.sockets.emit('update multiplier',{'multiplier':targetBPMMultiplier});
+  io.sockets.emit('update multiplier',{'multiplier':targetBPMMultiplier,'raw_multiplier':targetBPM});
   // closestBPM = 9999999;
   // for (var i = 0; i < 6; i++) {
   //   distance = bps - interval*2**i;
