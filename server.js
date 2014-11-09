@@ -66,7 +66,7 @@ app.post('/update', function(req, res){
       multiplier = 1.2;
     }else if( avg >= 5 && avg < 8 ){
       multiplier = 1;
-    }else if(avg > 8){
+    }else if(avg >= 8){
       multiplier = 0.7;
     }else{
       multiplier = -1;

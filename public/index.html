@@ -249,7 +249,10 @@
             console.log('updated multiplier');
             console.log(data.multiplier);
             console.log(data.raw_multiplier);
-            source1.playbackRate.value = data.multiplier;
+            if( source1 ){
+                   source1.playbackRate.value = data.multiplier;       
+            }
+
         });
         socket.on('playsong', function(data){
             console.log('got play song');
