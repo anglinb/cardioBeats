@@ -65,8 +65,8 @@ body {
                 <div class="row">
                     <div class="col-md-6">
                         <h1 id="status">Waiting for Myo</h1>
-                        <img src="" alt="Cover" id="cover" style="display: none; width: 100%;">
-                        <div id="track" style="display: block; position: relative; width: 100%; height: 5px; background: #990000;">
+                        <img src="" alt="Cover" id="cover" style="display: none; width: 90%; margin-left: 5%;">
+                        <div id="track" style="display: block; position: relative; width: 90%; margin-left: 5%; height: 5px; background: #990000;">
                             <div id="progress"></div>
                             <div id="thumb" style="position: absolute; background: #ffcc00; width: 5px; height: 5px;"></div>
                         </div>
@@ -80,8 +80,6 @@ body {
         	</div>
       </div>
       </div>
-	
-
 
     
     </div><!-- /.cotainer -->
@@ -105,8 +103,56 @@ body {
 
 	<!-- We also provide hosted minified versions of all CreateJS libraries.
      http://code.createjs.com -->
-    <script scr="custom-framework.js"></script>
-	<script src="new-way.js"></script>
+    <!-- <script scr="custom-framework.js"></script>-->
+    <script>
+        function BufferLoader(context, urlList, callback) {
+          this.context = context;
+          this.urlList = urlList;
+          this.onload = callback;
+          this.bufferList = new Array();
+          this.loadCount = 0;
+        }
+
+        BufferLoader.prototype.loadBuffer = function(url, index) {
+          // Load buffer asynchronously
+          var request = new XMLHttpRequest();
+          request.open("GET", url, true);
+          request.responseType = "arraybuffer";
+
+          var loader = this;
+
+          request.onload = function() {
+            // Asynchronously decode the audio file data in request.response
+            loader.context.decodeAudioData(
+              request.response,
+              function(buffer) {
+                if (!buffer) {
+                  alert('error decoding file data: ' + url);
+                  return;
+                }
+                loader.bufferList[index] = buffer;
+                if (++loader.loadCount == loader.urlList.length)
+                  loader.onload(loader.bufferList);
+              },
+              function(error) {
+                console.error('decodeAudioData error', error);
+              }
+            );
+          }
+
+          request.onerror = function() {
+            alert('BufferLoader: XHR error');
+          }
+
+          request.send();
+        }
+
+        BufferLoader.prototype.load = function() {
+          for (var i = 0; i < this.urlList.length; ++i)
+          this.loadBuffer(this.urlList[i], i);
+        }
+    </script>
+	<!--<script src="new-way.js"></script>-->
     <script>
 
         var src;            // the audio src we are trying to play
@@ -117,17 +163,56 @@ body {
         var lastTime;
         var lastBPMS = [];
         var positionInterval;
+        var currentSongTime;
         // var timeDelta;
 
 
+        // window.onload = init;
+        var context;
+        var bufferLoader;
+        var source1;
+
         function init() {
+          // Fix up prefixing
+          window.AudioContext = window.AudioContext || window.webkitAudioContext;
+          context = new AudioContext();
 
+          // bufferLoader = new BufferLoader(
+          //   context,['songs/no-mediocre.mp3'],
+          //   finishedLoading
+          //   );
 
-            // store the DOM element so we do not have to keep looking it up
-            displayStatus = document.getElementById("status");
-    
-            trackTime();
+          // bufferLoader.load();
+          trackTime();
         }
+        function finishedLoading(bufferList) {
+          // Create two sources and play them both together.
+          if ( source1 ){
+            source1.stop();
+          }
+          source1 = context.createBufferSource();
+          console.log('currnet time');
+          console.log(context.currentTime);
+          // var source2 = context.createBufferSource();
+          source1.buffer = bufferList[0];
+          // source2.buffer = bufferList[1];
+
+          source1.connect(context.destination);
+
+          // source2.connect(context.destination);
+          source1.start(0);
+          currentSongTime = 0;
+          updateSongMeta();
+          // source2.start(0);
+        }
+        // function init() {
+
+
+        //     // store the DOM element so we do not have to keep looking it up
+        //     displayStatus = document.getElementById("status");
+    
+        //     trackTime();
+        // }
         function loadSoundAndPlay(url){
 
 
@@ -140,23 +225,19 @@ body {
             // createjs.Sound.alternateExtensions = ["mp3"];   // add other extensions to try loading if the src file extension is not supported
             // //createjs.Sound.onLoadComplete = playSound;  // add a callback for when load is completed
             // createjs.Sound.addEventListener("fileload", playSound); // add an event listener for when load is completed
-            
+            bufferLoader = new BufferLoader(
+            context,[url],
+            finishedLoading
+            );
+
+            bufferLoader.load();
             // createjs.Sound.registerSound(src);  // register sound, which preloads by default
 
-            displayStatus.innerHTML = "Loading...";  // letting the user know what's happening
+            $("#status") = "Loading...";  // letting the user know what's happening
         }
-        function playSound(event) {
-            if( soundInstance ){
-                soundInstance.stop();
-            }
-			soundInstance = createjs.Sound.play(event.src);  // start playing the sound we just loaded, storing the playing instance
-            soundInstance.addEventListener("complete",songComplete);
-
-            updateSongMeta();
-			// displayStatus.innerHTML = "Playing: " + songMeta.name;  // let the user know what we are playing
-        }
-        function songComplete(event){
+        function songComplete(){
             console.log('songComplete');
+            currentSongTime = 0;
             socket.emit('song complete');
         }
         function updateBPM(bpm){
@@ -164,8 +245,12 @@ body {
         }
         function trackTime() {
             positionInterval = setInterval(function(event) {
-                if( soundInstance ){
-                    $("#thumb").css("left", soundInstance.getPosition()/soundInstance.getDuration() * $("#track").width());
+                if( source1 && context ){
+                    currentSongTime += .03 * source1.playbackRate.value;
+                    if( currentSongTime > source1.buffer.duration ){
+                        songComplete();
+                    }
+                    $("#thumb").css("left", currentSongTime / ( source1.buffer.duration ) * $("#track").width());
                 }
             }, 30);
         }
@@ -178,14 +263,6 @@ body {
         function commandUpate(){
             socket.emit('command input');
         }
-        // function loadArtistBio(){
-        //     $.ajax({
-        //         url:'https://partner.api.beatsmusic.com/v1/api/search?q=Drake&type=artist&limit=20&offset=0&client_id=gkwcd8n62rvz5an6tvsxmf5x'
-        //     })
-        // }
-          // socket.on('playsong', function (data) {
-          //   addChatMessage(data);
-          // });
         socket.on('bpm update', function(data){
             updateBPM(data.bpm);
         });
@@ -198,42 +275,36 @@ body {
         socket.on('playsong', function(data){
             console.log('got play song');
             songMeta = data;
-            // songMeta.bpm = data.bpm;
-            // songMeta.name = data.name;
-            // songMeta.source = data.source;
-            // songMeta.cover = data.cover;
-            // songMeta.cover = data.cover;
             loadSoundAndPlay(data.source);
-            
         });
 
-        $('body').keyup(function(e){
-           if(e.keyCode == 32){
-            console.log('Space Pressed');
-            if( ! lastTime ){
-                lastTime = new Date().getTime();
-            }else{
-                var bpm;
-                var currentTime = new Date().getTime();
-                timeDelata = currentTime - lastTime;
-                lastTime = currentTime;
-                bpm = 60000*(1/timeDelata);
-                lastBPMS.push(bpm);
-                // console.log(bpm);
-                if( lastBPMS.length >= 5){
-                    lastBPMS.shift();
-                }
-                total = 0;
-                for (var i = 0; i < lastBPMS.length; i++) {
-                    total += lastBPMS[i];
-                };
-                average = total / lastBPMS.length;
-                rounded = x_rounded = 5 * Math.round(average/5);
-                console.log(average);
-                console.log(rounded);
-            }
-           }
-        });
+        // $('body').keyup(function(e){
+        //    if(e.keyCode == 32){
+        //     console.log('Space Pressed');
+        //     if( ! lastTime ){
+        //         lastTime = new Date().getTime();
+        //     }else{
+        //         var bpm;
+        //         var currentTime = new Date().getTime();
+        //         timeDelata = currentTime - lastTime;
+        //         lastTime = currentTime;
+        //         bpm = 60000*(1/timeDelata);
+        //         lastBPMS.push(bpm);
+        //         // console.log(bpm);
+        //         if( lastBPMS.length >= 5){
+        //             lastBPMS.shift();
+        //         }
+        //         total = 0;
+        //         for (var i = 0; i < lastBPMS.length; i++) {
+        //             total += lastBPMS[i];
+        //         };
+        //         average = total / lastBPMS.length;
+        //         rounded = x_rounded = 5 * Math.round(average/5);
+        //         console.log(average);
+        //         console.log(rounded);
+        //     }
+        //    }
+        // });
     </script>
 
 
