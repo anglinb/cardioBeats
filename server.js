@@ -8,6 +8,7 @@ var request = require('request');
 var port = process.env.PORT || 3000;
 var currentSongIndex;
 var lastInputs = [];
+var currentlyPlaying = true;
 
 
 server.listen(port, function () {
@@ -20,6 +21,12 @@ app.use(express.static(__dirname + '/public'));
 //Parsing request body
 app.use(bodyParser.urlencoded({ extended: false }));
 
+app.post('/toggle-play', function(req, res){
+  console.log('got current play');
+  currentlyPlaying = ! currentlyPlaying;
+  io.sockets.emit('toggle play',{'status':currentlyPlaying});
+  res.end('ok');
+});
 
 app.post('/update', function(req, res){
   // var song = songs[currentSongIndex];
@@ -143,7 +150,7 @@ var songs = [
 ];
 
 function findSong(){
-  setSongIndex( 2 );//Math.floor(Math.random()*songs.length) );
+  setSongIndex( Math.floor(Math.random()*songs.length) );
   return songs[currentSongIndex];
 }
 function setSongIndex(index){
@@ -163,8 +170,11 @@ function setSongIndex(index){
             }, function (error, response, new_body) {
 
                 if (!error && response.statusCode === 200) {
-                    var bio = new_body.data[0].content.substring(0,365);
-                    io.sockets.emit('artist bio',{bio:bio});
+                    if( new_body.data[0] !== undefined ){
+                      var bio = new_body.data[0].content.substring(0,365);
+                      io.sockets.emit('artist bio',{bio:bio});
+                    }
+
                     // var artistId = body.data[0].id;
                     // console.log(body); // Print the json response
                 }

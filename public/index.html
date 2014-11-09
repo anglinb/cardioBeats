@@ -165,6 +165,7 @@
         var bufferLoader;
         var source1;
         var firstTime = true;
+        var playing = true;
 
         function init() {
           // Fix up prefixing
@@ -185,6 +186,7 @@
           updateSongMeta();
         }
         function loadSoundAndPlay(url){
+          playing = true;
             if( firstTime ){
                   window.AudioContext = window.AudioContext || window.webkitAudioContext;
                 context = new AudioContext();
@@ -230,6 +232,19 @@
         function commandUpate(){
             socket.emit('command input');
         }
+        function resume(){
+          if( source1 ){
+            source1.stop();
+          }else{
+            return;
+          }
+          playing = true;
+          var buff = source1.buffer;
+          source1 = context.createBufferSource();
+          source1.buffer = buff;
+          source1.connect(context.destination);
+          source1.start(0, currentSongTime);
+        }
         socket.on('bpm update', function(data){
             updateBPM(data.bpm);
         });
@@ -250,10 +265,22 @@
             console.log(data.multiplier);
             console.log(data.raw_multiplier);
             if( source1 ){
-                   source1.playbackRate.value = data.multiplier;       
+              source1.playbackRate.value = data.multiplier;       
             }
-
         });
+        socket.on('toggle play', function(data){
+          console.log(data);
+          if( data.status === true){
+            if( playing === false ){
+              resume();
+            }
+          }else if( data.status === false){
+            if( playing === true){
+              source1.stop();
+              playing = false;
+            }
+          }
+        })
         socket.on('playsong', function(data){
             console.log('got play song');
             songMeta = data;
