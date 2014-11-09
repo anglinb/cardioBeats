@@ -71,6 +71,8 @@ app.post('/update', function(req, res){
     }
     io.sockets.emit('update multiplier',{'multiplier':multiplier,'raw_multiplier':avg});
   }
+  io.sockets.emit('update multiplier',{'multiplier':1 ,'raw_multiplier':'kfdsf'});
+
 
   // if( req.interval )
   
