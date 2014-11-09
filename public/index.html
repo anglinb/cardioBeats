@@ -267,7 +267,7 @@
             if( source1 ){
               source1.playbackRate.value = data.multiplier;       
             }
-            $("#bpm").html(String(source1.playbackRate.value * songMeta.bpm ));
+            $("#bpm").html(String(Math.round(source1.playbackRate.value * songMeta.bpm )));
         });
         socket.on('toggle play', function(data){
           console.log(data);
