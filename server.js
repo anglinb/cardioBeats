@@ -61,14 +61,14 @@ app.post('/update', function(req, res){
   //   targetBPMMultiplier = 0.75;
   // }
   lastInputs.push( parseFloat(req.body.interval) );
-  if( lastInputs.length > 10){
+  if( lastInputs.length > 3){
     total = 0;
     for (var i = 0; i < lastInputs.length - 1; i++) {
       console.log('Called i: '+String(i));
       total = total + lastInputs[i];
     }
     console.log(total);
-    var avg = total / 10;
+    var avg = total / 3;
     if( avg < 5 ){
       multiplier = 1.2;
     }else if( avg >= 5 && avg < 8 ){
