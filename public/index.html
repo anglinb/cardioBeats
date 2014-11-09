@@ -7,29 +7,29 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
     <style>
         /* Sticky footer styles
--------------------------------------------------- */
-html {
-  position: relative;
-  min-height: 100%;
-}
-body {
-  /* Margin bottom by footer height */
-  margin-bottom: 60px;
+        -------------------------------------------------- */
+        html {
+          position: relative;
+          min-height: 100%;
+        }
+        body {
+          /* Margin bottom by footer height */
+          margin-bottom: 60px;
 
-      background: url(assets/img/bg3.jpg) no-repeat center center fixed; 
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-}
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  /* Set the fixed height of the footer here */
-  height: 60px;
-  background-color: #f5f5f5;
-}
+              background: url(assets/img/bg3.jpg) no-repeat center center fixed; 
+          -webkit-background-size: cover;
+          -moz-background-size: cover;
+          -o-background-size: cover;
+          background-size: cover;
+        }
+        .footer {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          /* Set the fixed height of the footer here */
+          height: 60px;
+          background-color: #f5f5f5;
+        }
     </style>
 </head>
 
@@ -155,19 +155,11 @@ body {
 	<!--<script src="new-way.js"></script>-->
     <script>
 
-        var src;            // the audio src we are trying to play
-        // var soundInstance;  // the soundInstance returned by Sound when we create or play a src
-        // var displayStatus;  // the HTML element we use to display messages to the user
         var socket = io();
         var songMeta = {};
         var lastTime;
-        var lastBPMS = [];
         var positionInterval;
         var currentSongTime;
-        // var timeDelta;
-
-
-        // window.onload = init;
         var context;
         var bufferLoader;
         var source1;
@@ -177,12 +169,6 @@ body {
           window.AudioContext = window.AudioContext || window.webkitAudioContext;
           context = new AudioContext();
 
-          // bufferLoader = new BufferLoader(
-          //   context,['songs/no-mediocre.mp3'],
-          //   finishedLoading
-          //   );
-
-          // bufferLoader.load();
           trackTime();
         }
         function finishedLoading(bufferList) {
@@ -193,45 +179,20 @@ body {
           source1 = context.createBufferSource();
           console.log('currnet time');
           console.log(context.currentTime);
-          // var source2 = context.createBufferSource();
           source1.buffer = bufferList[0];
-          // source2.buffer = bufferList[1];
-
           source1.connect(context.destination);
-
-          // source2.connect(context.destination);
           source1.start(0);
           currentSongTime = 0;
           updateSongMeta();
-          // source2.start(0);
         }
-        // function init() {
-
-
-        //     // store the DOM element so we do not have to keep looking it up
-        //     displayStatus = document.getElementById("status");
-    
-        //     trackTime();
-        // }
         function loadSoundAndPlay(url){
 
-
-            // Create a single item to load.
-            // var assetsPath = "assets/";
-            // // src = assetsPath+"18-machinae_supremacy-lord_krutors_dominion.ogg";
-            // src = url;
-            // // NOTE the "|" character is used by Sound to separate source into distinct files, which allows you to provide multiple extensions for wider browser support
-
-            // createjs.Sound.alternateExtensions = ["mp3"];   // add other extensions to try loading if the src file extension is not supported
-            // //createjs.Sound.onLoadComplete = playSound;  // add a callback for when load is completed
-            // createjs.Sound.addEventListener("fileload", playSound); // add an event listener for when load is completed
             bufferLoader = new BufferLoader(
             context,[url],
             finishedLoading
             );
 
             bufferLoader.load();
-            // createjs.Sound.registerSound(src);  // register sound, which preloads by default
 
             $("#status") = "Loading...";  // letting the user know what's happening
         }
@@ -277,44 +238,6 @@ body {
             songMeta = data;
             loadSoundAndPlay(data.source);
         });
-
-        // $('body').keyup(function(e){
-        //    if(e.keyCode == 32){
-        //     console.log('Space Pressed');
-        //     if( ! lastTime ){
-        //         lastTime = new Date().getTime();
-        //     }else{
-        //         var bpm;
-        //         var currentTime = new Date().getTime();
-        //         timeDelata = currentTime - lastTime;
-        //         lastTime = currentTime;
-        //         bpm = 60000*(1/timeDelata);
-        //         lastBPMS.push(bpm);
-        //         // console.log(bpm);
-        //         if( lastBPMS.length >= 5){
-        //             lastBPMS.shift();
-        //         }
-        //         total = 0;
-        //         for (var i = 0; i < lastBPMS.length; i++) {
-        //             total += lastBPMS[i];
-        //         };
-        //         average = total / lastBPMS.length;
-        //         rounded = x_rounded = 5 * Math.round(average/5);
-        //         console.log(average);
-        //         console.log(rounded);
-        //     }
-        //    }
-        // });
     </script>
-
-
-<!-- bpm = beats / 60 seconds = beats / 60000 milieconds 
-
-468 miliseconds / beat
-
-beat / 468 miliseconds 
-
-
-x/60000 = 1/468 -->
 </body>
 </html>
