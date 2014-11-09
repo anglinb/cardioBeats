@@ -98,7 +98,7 @@
     <script type="text/javascript" src="../src/soundjs/Sound.js"></script>
     <script type="text/javascript" src="../src/soundjs/WebAudioPlugin.js"></script>
     <script type="text/javascript" src="../src/soundjs/HTMLAudioPlugin.js"></script>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
 	<!-- We also provide hosted minified versions of all CreateJS libraries.
@@ -194,7 +194,7 @@
 
             bufferLoader.load();
 
-            $("#status") = "Loading...";  // letting the user know what's happening
+            $("#status").html("Loading...");  // letting the user know what's happening
         }
         function songComplete(){
             console.log('songComplete');
@@ -230,8 +230,12 @@
         socket.on('artist bio', function(data){
             $("#artist-bio").html(data.bio);
         }); 
-        socket.on('playsong2', function(data){
-            console.log(data);
+        socket.on('playsong connect', function(data){
+            console.log('Playsong Connect');
+            if( ! source1 ){
+                songMeta = data;
+                loadSoundAndPlay(data.source);
+            }
         });
         socket.on('playsong', function(data){
             console.log('got play song');
