@@ -45,10 +45,10 @@ app.post('/update', function(req, res){
   targetBPMMultiplier = targetBPM/song.bpm;
   console.log('Target BPM '+targetBPM);
   console.log('Target BPM Multiplier'+String(targetBPMMultiplier));
-  if( targetBPMMultiplier > 1.5){
-    targetBPMMultiplier = 1.5;
-  }else if( targetBPMMultiplier < 0.65 ){
-    targetBPMMultiplier = 0.65;
+  if( targetBPMMultiplier > 1.4){
+    targetBPMMultiplier = 1.4;
+  }else if( targetBPMMultiplier < 0.75 ){
+    targetBPMMultiplier = 0.75;
   }
   io.sockets.emit('update multiplier',{'multiplier':targetBPMMultiplier});
   // closestBPM = 9999999;

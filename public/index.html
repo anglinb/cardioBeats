@@ -247,6 +247,7 @@
         });
         socket.on('update multiplier', function(data){
             console.log('updated multiplier');
+            console.log(data.multiplier);
             source1.playbackRate.value = data.multiplier;
         });
         socket.on('playsong', function(data){
