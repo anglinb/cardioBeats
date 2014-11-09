@@ -55,21 +55,22 @@ app.post('/update', function(req, res){
   // }
   lastInputs.push( req.body.interval );
   if( lastInputs.length > 11){
+    
+    // // lastInputs.push( req.body.interval );
+    //   total = 0;
+    // for (var i = 0; i < lastInputs.length; i++) {
+    //   total += lastInputs[i];
+    // }
+    // var avg = total / 10;
+    // if( avg < 5 ){
+    //   multiplier = 1.2;
+    // }else if( avg > 5 && avg < 8 ){
+    //   multiplier = 1;
+    // }else if(avg > 8){
+    //   multiplier = 0.7;
+    // }
+    io.sockets.emit('update multiplier',{'multiplier':multiplier,'raw_multiplier':'swag'});
     lastInputs.shitf();
-    // lastInputs.push( req.body.interval );
-      total = 0;
-    for (var i = 0; i < lastInputs.length; i++) {
-      total += lastInputs[i];
-    }
-    var avg = total / 10;
-    if( avg < 5 ){  
-      multiplier = 1.2;
-    }else if( avg > 5 && avg < 8 ){
-      multiplier = 1;
-    }else if(avg > 8){
-      multiplier = 0.7;
-    }
-    io.sockets.emit('update multiplier',{'multiplier':multiplier,'raw_multiplier':avg});
   }
   io.sockets.emit('update multiplier',{'multiplier':1 ,'raw_multiplier':'kfdsf'});
 
