@@ -70,7 +70,7 @@ app.post('/update', function(req, res){
     //   multiplier = 0.7;
     // }
     io.sockets.emit('update multiplier',{'multiplier':multiplier,'raw_multiplier':'swag'});
-    lastInputs.shitf();
+    lastInputs.unshift();
   }
   io.sockets.emit('update multiplier',{'multiplier':1 ,'raw_multiplier':'kfdsf'});
 
