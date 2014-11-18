@@ -1,10 +1,10 @@
 cardioBeats
 =====
 
-A Myo-Powered adaptive music play. Jog with you Myo and cardioBeats speeds up or slows down your music--Built in 48 hours at #HackSC
+A Myo-Powered adaptive music play. Jog with you Myo and cardioBeats speeds up or slows down your music--Built in 24 hours at #HackSC
 
 
-We used the Myo SDK written in C++ to grab orientation data. We passed this to python and processed the signal. We basically used a three point analysis to find local minimum and maximums.
+We used the Myo SDK written in C++ to grab orientation data. We passed this to Python through packets and processed the signal. We basically used a three-point analysis to find local minimum and maximums.
 
 
 	^ Pitch 
@@ -34,6 +34,6 @@ vs
 				*		*
 					*
 
-The second curve is probably a significant movement while the first would give us a very short wavelength. 
+The second curve would probably be a significant movement while the first would surely give an extremely short wavelength. 
 
-Once we have found a min or max we compare it to the prevoius to find the wavelength. Based on our calibrations we used this wavelength to adjust the tempo of the music. 
+Once we have found a min or max, we compare it to the previous to find the wavelength. Based on our calibrations, we then use this wavelength to adjust the tempo of the music. 
